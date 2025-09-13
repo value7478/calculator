@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>감정평가 최저 수수료 계산기(2025년 개정)</title>
+  <style>
+    :root { --brand:#3e4a91; --brand-d:#2e3a71; }
+    *{ box-sizing:border-box; }
+    body{
+      font-family:'맑은 고딕', Arial, sans-serif;
+      background:#f5f6fa;
+      margin:0;
+      padding:24px;
+      color:#222;
+    }
+    .wrap{ max-width:720px; margin:0 auto; }
+    h1{ text-align:center; margin:8px 0 20px; }
+    .card{
+      background:#fff; border-radius:10px; padding:20px;
+      box-shadow:0 6px 18px rgba(0,0,0,.08);
+      margin-bottom:18px;
+    }
+    .row{ display:flex; gap:10px; align-items:center; }
+    .row input{
+      flex:1; padding:12px 14px; border:1px solid #cfd4e0;
+      border-radius:8px; font-size:16px;
+    }
+    .btn{
+      display:inline-block; width:100%;
+      background:var(--brand); color:#fff; border:none;
+      padding:12px 16px; border-radius:8px; font-size:16px;
+      cursor:pointer; margin-top:12px;
+    }
+    .btn:hover{ background:var(--brand-d); }
+    .result{
+      text-align:center; margin-top:10px; line-height:1.6;
+    }
+    .result strong{ font-size:22px; }
+    .muted{ color:red; font-size:13px; }
+    .table{
+      overflow-x:auto; border-radius:10px; border:1px solid #e3e7ef;
+    }
+    table{ width:100%; border-collapse:collapse; font-size:14px; }
+    thead th{
+      background:var(--brand); color:#fff; padding:10px; text-align:center;
+    }
+    tbody td{
+      padding:9px 10px;
+      border-top:1px solid #eef1f6;
+      vertical-align:middle;
+      text-align:center;
+    }
+    tbody tr:nth-child(even){ background:#fbfcff; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>감정평가 최저 수수료 계산기</h1>
+
+    <div class="card">
+      <!-- 폼으로 감싸서 Enter(Submit)로도 계산 -->
+      <form id="calcForm" autocomplete="off" novalidate>
+        <div class="row">
+          <label class="sr-only" for="amount">감정평가액</label>
+          <input
+            id="amount"
+            type="text"
+            inputmode="numeric"
+            placeholder="감정평가액을 입력하세요 (원)"
+            aria-label="감정평가액 입력"
+          />
+        </div>
+        <button class="btn" id="calcBtn" type="submit">최저 수수료(법정)</button>
+      </form>
+
+      <!-- 결과 표시부 -->
+      <div class="result" id="resultBox" aria-live="polite">
+        <div style="margin-bottom:10px;">
+          <strong>최저 수수료: 0원</strong>
+        </div>
+        <div class="muted" style="margin-bottom:20px;">
+          (출장비, 부가세 등 실비 별도)
+        </div>
+        <div style="font-size:13px; line-height:1.5;">
+          이상용 감정평가사(한국 · 미국 자격보유)<br/>
+          삼일감정평가법인 본부장, 010-2121-7478(견적문의)<br/>
+          valuer@kaist.ac.kr, www.value.or.kr
+        </div>
+      </div>
+    </div>
+
+    <div class="card table">
+      <table>
+        <thead>
+          <tr>
+            <th>감정평가액</th>
+            <th>0.8배 요율 적용 (최대 할인)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>5천만원까지</td><td>250,000원</td></tr>
+          <tr><td>5천만원 초과 ~ 5억원 이하</td><td>250,000 + 초과금액 × (11/10,000) × 0.8</td></tr>
+          <tr><td>5억원 초과 ~ 10억원 이하</td><td>646,000 + 초과금액 × (9/10,000) × 0.8</td></tr>
+          <tr><td>10억원 초과 ~ 50억원 이하</td><td>1,006,000 + 초과금액 × (8/10,000) × 0.8</td></tr>
+          <tr><td>50억원 초과 ~ 100억원 이하</td><td>3,566,000 + 초과금액 × (7/10,000) × 0.8</td></tr>
+          <tr><td>100억원 초과 ~ 500억원 이하</td><td>6,366,000 + 초과금액 × (6/10,000) × 0.8</td></tr>
+          <tr><td>500억원 초과 ~ 1,000억원 이하</td><td>25,566,000 + 초과금액 × (5/10,000) × 0.8</td></tr>
+          <tr><td>1,000억원 초과 ~ 3,000억원 이하</td><td>45,566,000 + 초과금액 × (4/10,000) × 0.8</td></tr>
+          <tr><td>3,000억원 초과 ~ 6,000억원 이하</td><td>109,566,000 + 초과금액 × (3/10,000) × 0.8</td></tr>
+          <tr><td>6,000억원 초과 ~ 1조원 이하</td><td>181,566,000 + 초과금액 × (2/10,000) × 0.8</td></tr>
+          <tr><td>1조원 초과</td><td>245,566,000 + 초과금액 × (1/10,000) × 0.8</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // 숫자 포맷: 1원 단위 절사(반올림 없음)
+    const fmt = (n) => new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 0 }).format(Math.trunc(n));
+
+    // 숫자만 추출
+    function parseAmount(v){
+      const num = (v || '').replace(/[^\d]/g,'');
+      return Number(num || 0);
+    }
+
+    // 최저 수수료 계산
+    function calcFee(A){
+      if (A <= 50_000_000) return 250_000;
+      else if (A <= 500_000_000) return 250_000 + (A - 50_000_000) * (11/10_000) * 0.8;
+      else if (A <= 1_000_000_000) return 646_000 + (A - 500_000_000) * (9/10_000) * 0.8;
+      else if (A <= 5_000_000_000) return 1_006_000 + (A - 1_000_000_000) * (8/10_000) * 0.8;
+      else if (A <= 10_000_000_000) return 3_566_000 + (A - 5_000_000_000) * (7/10_000) * 0.8;
+      else if (A <= 50_000_000_000) return 6_366_000 + (A - 10_000_000_000) * (6/10_000) * 0.8;
+      else if (A <= 100_000_000_000) return 25_566_000 + (A - 50_000_000_000) * (5/10_000) * 0.8;
+      else if (A <= 300_000_000_000) return 45_566_000 + (A - 100_000_000_000) * (4/10_000) * 0.8;
+      else if (A <= 600_000_000_000) return 109_566_000 + (A - 300_000_000_000) * (3/10_000) * 0.8;
+      else if (A <= 1_000_000_000_000) return 181_566_000 + (A - 600_000_000_000) * (2/10_000) * 0.8;
+      else return 245_566_000 + (A - 1_000_000_000_000) * (1/10_000) * 0.8;
+    }
+
+    // 결과 갱신
+    function updateResult(){
+      const A = parseAmount(document.getElementById('amount').value);
+      const fee = calcFee(A);
+      document.querySelector('#resultBox strong').textContent = `최저 수수료: ${fmt(fee)}원`;
+    }
+
+    // 폼 제출(엔터/버튼) 시 계산
+    document.getElementById('calcForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      updateResult();
+    });
+
+    // 입력 시 자동 콤마 및 미리보기(원치 않으면 updateResult() 호출은 빼도 됨)
+    const amt = document.getElementById('amount');
+    amt.addEventListener('input', (e) => {
+      const raw = parseAmount(e.target.value);
+      e.target.value = raw ? raw.toLocaleString('ko-KR') : '';
+      updateResult();
+    });
+
+    // 접근성 숨김 라벨용 유틸(선택)
+    (function injectSrOnlyCss(){
+      const css = '.sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}';
+      const style = document.createElement('style');
+      style.innerHTML = css;
+      document.head.appendChild(style);
+    })();
+  </script>
+</body>
+</html>
